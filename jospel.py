@@ -255,7 +255,7 @@ def display_board_with_bonuses(board, points):
             print("│ ← {} ({})".format(row_points[1], row_points[0]))
         else:
             print("│")
-    print("─────────────────┘")
+    print("───┴─────────────┘")
     for j in range(4):
         row_points = points[4 + j]
         space_amount = 6 + 3 * j
