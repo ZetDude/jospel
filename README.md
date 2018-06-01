@@ -2,7 +2,7 @@
 
 ### Jospel is a simple math-oriented game played on a grid and some cards with numbers on them  
 
-The cards are just the numbers from 1 to 10, twice over, resulting in 20 cards. The cards are shuffled and showed one by one. Every time a card is shown, the player must write the number down to a 4x4 grid. You may not see the next number until you have placed the last, and you cannot relocate numbers. The strategy part comes into play when we talk about the points system
+The cards are just the numbers from 1 to 10, twice over, resulting in 20 cards. The cards are shuffled and showed one by one. Every time a card is shown, the player must write the number down to a 4x4 grid. You may not see the next number until you have placed the last, and you cannot relocate numbers. Note that as the grid fits only 16 numbers, not all cards will be used up, therefore you may never know if some patterns are possible to achieve. The strategy part comes into play when we talk about the points system
 
 ### For each row and column, certain patterns give points
 
