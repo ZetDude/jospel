@@ -58,16 +58,24 @@ def encode_seed(played_cards):
     
     seed = [0 if x==10 else x for x in played_cards]
     seed = "".join(str(x) for x in seed)
-    seed = int(seed)
-    seed = base_repr(seed, 36)
+    seed = base_repr(int(seed), 36)
     return seed
 
 def decode_seed(seed):
 
-    seed = int(seed, 36)
+    seed = int(seed.upper(), 36)
     seed = [int(x) for x in list(str(seed))]
     seed = [10 if x==0 else x for x in seed]
     return seed
+
+def detect_faulty_seed(seed):
+    try:
+        decoded_seed = decode_seed(seed)
+    except Exception as e:
+        return "Decoding seed threw and error {}".format(e)
+    if len(decoded_seed) != 16:
+        return "Seed is wrong length, please make sure you copied it correctly."
+    return False
 
 def detect_pair_in_row(row):
     """Find if a sequence of repeating number next to eachother
@@ -315,10 +323,18 @@ while True:
         seed = encode_seed(played_cards)
         print("Seed for this game: {}\n\n".format(seed))
     else:
+        
+        if detect_faulty_seed(seed_choice):
+            print(detect_faulty_seed(seed_choice))
+            continue
         current_card_pool = decode_seed(seed_choice)
         played_cards = list(current_card_pool)
 
+    turns_taken = 0
     while current_card_pool:  # While there are still cards in the pool.
+        if turns_taken == 16:
+            print("Game has lasted too long, forcing end.")
+            break
         # Pop the top card. As the list is shuffled this is random anyway.
         chosen_number = current_card_pool.pop()
         display_board(board)
@@ -335,6 +351,7 @@ while True:
                 else:  # If the chosen position isn't empty
                     print("Position filled, try again")
         board[target] = chosen_number  # Update the board with the number
+        turns_taken += 1
         print("\n" * 20)  # Print some whitespace for better formatting.
 
     row_indices = [[0,  1,  2,  3],  #  0  1  2  3
@@ -352,7 +369,7 @@ while True:
     for r in row_indices:
         current_row = []
         for i in r:
-            current_row.append(board[i])
+            current_row.append(int(board[i]))
         total_rows.append(current_row)
 
     # This part of the code finds the max points of every row and column into a seperate list.
