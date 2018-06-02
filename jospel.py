@@ -343,7 +343,7 @@ while True:
     display_board_with_bonuses(board, results)
     print(f"\n\nYou earned {sum(results_clean)} points!")
     print("Cards given in this round: {}".format(", ".join([str(x) for x in played_cards])))
-    input("Any key to continue...")
+    input("Enter to continue...")
 ####################################################################################################
 ######### The following code is still a work in progress, and doesn't even work. Don't try #########
 ##                                                                                                ##
@@ -369,7 +369,7 @@ while True:
 ##            best_permutation = i                                                                ##
 ##            display_board_with_bonuses(i, results)                                              ##
 ##    print(best_permutation)                                                                     ##
-##    input("Any key to continue...")                                                             ##
+##    input("Enter to continue...")                                                               ##
 ##                                                                                                ##
 ####################################################################################################
 ####################################################################################################
