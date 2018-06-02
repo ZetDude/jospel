@@ -1,5 +1,6 @@
 import itertools
 import random
+from numpy import base_repr
 
 
 CARD_POOL = [val for val in list(range(1, 11)) for _ in (0, 1)]
@@ -52,6 +53,21 @@ def detect_one_by_one_changing_list(given_list):
             if given_list[y-1] != i + direction:
                 return False
     return True
+
+def encode_seed(played_cards):
+    
+    seed = [0 if x==10 else x for x in played_cards]
+    seed = "".join(str(x) for x in seed)
+    seed = int(seed)
+    seed = base_repr(seed, 36)
+    return seed
+
+def decode_seed(seed):
+
+    seed = int(seed, 36)
+    seed = [int(x) for x in list(str(seed))]
+    seed = [10 if x==0 else x for x in seed]
+    return seed
 
 def detect_pair_in_row(row):
     """Find if a sequence of repeating number next to eachother
@@ -286,17 +302,25 @@ def location_to_index(loc):
 # Here's the main game logic, inside of a while True loop, since I don't intend to use the
 # functionality elsewhere.
 while True:
-    current_card_pool = list(CARD_POOL)  # Creates a static copy of the card pool const list.
-    random.shuffle(current_card_pool)  # Shuffle the card deck for a fair game.
-    # Pick only 16 cards from the pool, as we'll only need that many.
-    current_card_pool = current_card_pool[:16]
     board = [EMPTY_TILE] * 16  # Fill the board with empty tiles.
-    # Create a duplicate of this round's card pool, for scorekeeping later.
-    played_cards = list(current_card_pool)
+
+    seed_choice = input("Enter the custom seed for this game, leave blank for none >>> ")
+    if seed_choice == "":
+        current_card_pool = list(CARD_POOL)  # Creates a static copy of the card pool const list.
+        random.shuffle(current_card_pool)  # Shuffle the card deck for a fair game.
+        # Pick only 16 cards from the pool, as we'll only need that many.
+        current_card_pool = current_card_pool[:16]
+        # Create a duplicate of this round's card pool, for scorekeeping later.
+        played_cards = list(current_card_pool)
+        seed = encode_seed(played_cards)
+        print("Seed for this game: {}\n\n".format(seed))
+    else:
+        current_card_pool = decode_seed(seed_choice)
+        played_cards = list(current_card_pool)
+
     while current_card_pool:  # While there are still cards in the pool.
         # Pop the top card. As the list is shuffled this is random anyway.
         chosen_number = current_card_pool.pop()
-        print("\n" * 20)  # Print some whitespace for better formatting.
         display_board(board)
         got_target = False  # bool denoting if a position for the number has been chosen.
         while not got_target:
@@ -311,6 +335,7 @@ while True:
                 else:  # If the chosen position isn't empty
                     print("Position filled, try again")
         board[target] = chosen_number  # Update the board with the number
+        print("\n" * 20)  # Print some whitespace for better formatting.
 
     row_indices = [[0,  1,  2,  3],  #  0  1  2  3
                    [4,  5,  6,  7],  #  4  5  6  7
@@ -342,7 +367,7 @@ while True:
     print("\n\n\nG A M E   O V E R !\n\n")
     display_board_with_bonuses(board, results)
     print(f"\n\nYou earned {sum(results_clean)} points!")
-    print("Cards given in this round: {}".format(", ".join([str(x) for x in played_cards])))
+    print("Cards given in this round: {}".format(", ".join([str(x) for x in reversed(played_cards)])))
     input("Enter to continue...")
 ####################################################################################################
 ######### The following code is still a work in progress, and doesn't even work. Don't try #########
