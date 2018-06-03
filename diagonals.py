@@ -264,7 +264,10 @@ def display_board_with_bonuses(board, points):
     may cause unforseeable consequences.
     """
     print(" X │ A  B  C  D  │")  # Hard-coded column headers
-    print("───┼─────────────┤")
+    if points[9] is not None:
+        print("───┼─────────────┤ ↙ {} ({})".format(points[9][1], points[9][0]))
+    else:
+        print("───┼─────────────┤")
     # I'm sorry if you need to do anything with this part. This deals with formatting and is a mess,
     # it works and I don't reccommend you touch it.
     # here be dragons.
@@ -279,7 +282,10 @@ def display_board_with_bonuses(board, points):
             print("│ ← {} ({})".format(row_points[1], row_points[0]))
         else:
             print("│")
-    print("───┴─────────────┘")
+    if points[8] is not None:
+        print("───┴─────────────┘ ↖ {} ({})".format(points[8][1], points[8][0]))
+    else:
+        print("───┴─────────────┘")
     for j in range(4):
         row_points = points[4 + j]
         space_amount = 6 + 3 * j
