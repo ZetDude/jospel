@@ -1,4 +1,7 @@
-import itertools
+"""Jospel game implementation in python.
+Learn more about this game at https://github.com/ZetDude/jospel/blob/master/README.md"""
+
+#import itertools
 import random
 from numpy import base_repr
 
@@ -8,16 +11,19 @@ COLUMN_FACTORS = {"A": 0,
                   "B": 1,
                   "C": 2,
                   "D": 3,
-                  }
+                 }
 EMPTY_TILE = "[]"
 
-def all_sublists_from_list(given_list, sublist_size):
+def all_sublists_from_list(given_list, sublist_size) -> list:
     """Get all sublists of given length `sublist_size` from longer list
     `given_list`.
 
     Returns all the possible sublists in a list of lists.
     Raises IndexError if desired sublist size is bigger than given list
     size.
+
+    Example:
+    [1, 3, 5], 2 -> [[1, 3], [3, 5]]
     """
     length_difference = len(given_list) - sublist_size
     # If the desired length is the same as the given list.
@@ -37,47 +43,58 @@ def all_sublists_from_list(given_list, sublist_size):
         returnable.append(given_list[i:i+sublist_size])
     return returnable
 
-def detect_one_by_one_changing_list(given_list):
+def detect_one_by_one_changing_list(given_list) -> bool:
+    """Detect if int list `given_list` contains only members which ascend or descend one by one
+
+    Returns a bool, corresponding to if this is the case.
+
+    Examples:
+    [3, 4, 5, 6] -> True
+    [5, 6, 8, 9] -> False
+    """
     direction = 0
-    for y, i in enumerate(given_list):
-        if y == 0:
+    for j, i in enumerate(given_list):
+        if j == 0:
             continue
         if direction == 0:
-            if given_list[y-1] == i + 1:
+            if given_list[j-1] == i + 1:
                 direction = 1
-            elif given_list[y-1] == i - 1:
+            elif given_list[j-1] == i - 1:
                 direction = -1
             else:
                 return False
         else:
-            if given_list[y-1] != i + direction:
+            if given_list[j-1] != i + direction:
                 return False
     return True
 
-def encode_seed(played_cards):
-    
-    seed = [0 if x==10 else x for x in played_cards]
+def encode_seed(played_cards) -> str:
+    "Converts int list `played_cards` into a seed for sharing with other players"
+    seed = [0 if x == 10 else x for x in played_cards]
     seed = "".join(str(x) for x in seed)
     seed = base_repr(int(seed), 36)
     return seed
 
-def decode_seed(seed):
-
+def decode_seed(seed) -> list:
+    "Converts str `seed` into the list of cards to play with this seed"
     seed = int(seed.upper(), 36)
     seed = [int(x) for x in list(str(seed))]
-    seed = [10 if x==0 else x for x in seed]
+    seed = [10 if x == 0 else x for x in seed]
     return seed
 
-def detect_faulty_seed(seed):
+def detect_faulty_seed(seed) -> bool:
+    """Detects if a given str `seed` is valid and not tampered with
+
+    Returns False if everything is okay, returns truthy string with an explanation if not"""
     try:
         decoded_seed = decode_seed(seed)
-    except Exception as e:
-        return "Decoding seed threw and error {}".format(e)
+    except Exception as err: # pylint: disable=broad-except
+        return "Decoding seed threw an error {}".format(err)
     if len(decoded_seed) != 16:
         return "Seed is wrong length, please make sure you copied it correctly."
     return False
 
-def detect_pair_in_row(row):
+def detect_pair_in_row(row) -> int:
     """Find if a sequence of repeating number next to eachother
     exists in 4-length int list `row`.
 
@@ -91,14 +108,14 @@ def detect_pair_in_row(row):
     isn't handled and may cause unforseeable consequences.
     """
 
-    for y, i in enumerate(row):  # Go through every item in the row.
-        if y == 3:  # If we're already at the last item
+    for j, i in enumerate(row):  # Go through every item in the row.
+        if j == 3:  # If we're already at the last item
             return 0  # return that nothing was found.
         # Check if the item we're iterating on and the item that follows are identical.
-        if i == row[y+1]:
+        if i == row[j+1]:
             return 10  # Return the amount of points gained from a row (10).
 
-def detect_double_pair_in_row(row):
+def detect_double_pair_in_row(row) -> int:
     """Find if a sequence of two repeating pairs or a sequence of
     two alternating number exists in 4-length int list `row`.
 
@@ -120,7 +137,7 @@ def detect_double_pair_in_row(row):
     return 0
     # Big row of checks because I'm lazy to find a better method
 
-def detect_short_streak_in_row(row):
+def detect_short_streak_in_row(row) -> int:
     """Find if a sequence of three consecutive numbers exists
     in any position in 4-length int list `row`.
     A streak can progress in any direction, either ascending or
@@ -147,7 +164,7 @@ def detect_short_streak_in_row(row):
             return 30
     return 0
 
-def detect_long_streak_in_row(row):
+def detect_long_streak_in_row(row) -> int:
     """Find if a sequence of four consecutive numbers exists
     in any position in 4-length int list `row`.
     A streak can progress in any direction, either ascending or
@@ -209,7 +226,7 @@ def max_points_of_row(row):
                   detect_short_streak_in_row, # 30 points
                   detect_long_streak_in_row,  # 40 points
                   detect_jospel_in_row,       # 50 points
-                  ]
+                 ]
     # As the pattern functions return the amount of points gained from said function, this
     # dict converts those points into a more readable representation of that pattern.
     names = {10: "pair",
@@ -217,7 +234,7 @@ def max_points_of_row(row):
              30: "short streak",
              40: "long streak",
              50: "Jospel",
-             }
+            }
     for func in operations:  # Goes through every pattern function
         all_found_points.append(func(row))  # Runs each one with the given row
     # Special case: in case of a pair (10) and a short streak (30), combine the points of the two
@@ -230,7 +247,7 @@ def max_points_of_row(row):
         # Return the max of the values and the name of it
         return (best_value, names[best_value])
 
-def display_board(board):
+def display_board(board) -> None:
     """Prints out the 16-length int list `board`, formatted neatly for readability
     Displays the row numbers and column letter, which the player can use to position
     their numbers.
@@ -245,12 +262,12 @@ def display_board(board):
     for i in range(0, 16, 4):  # Iterate through every beginning of a row, as rows are 4 tiles wide
         # Formatting magic. It works.
         print(" {} │".format((i+4)//4), end=" ")
-        for y in range(4):
-            current_tile = str(board[i + y])
+        for j in range(4):
+            current_tile = str(board[i + j])
             print((" " if len(current_tile) == 1 else "") + current_tile, end=" ")
         print()
 
-def display_board_with_bonuses(board, points):
+def display_board_with_bonuses(board, points) -> None:
     """Prints out the 16-length int list `board`, formatted neatly for readability
     Displays the row numbers and column letter, which the player can use to position
     their numbers. Also displays the amount of points recieved for each row and column,
@@ -266,14 +283,14 @@ def display_board_with_bonuses(board, points):
     print(" X │ A  B  C  D  │")  # Hard-coded column headers
     print("───┼─────────────┤")
     # I'm sorry if you need to do anything with this part. This deals with formatting and is a mess,
-    # it works and I don't reccommend you touch it.
+    # it works and I don't recommend you touch it.
     # here be dragons.
     for i in range(0, 16, 4):
         row_number = i//4
         row_points = points[row_number]
         print(" {} │".format(row_number + 1), end=" ")
-        for y in range(4):
-            current_tile = str(board[i + y])
+        for j in range(4):
+            current_tile = str(board[i + j])
             print((" " if len(current_tile) == 1 else "") + current_tile, end=" ")
         if row_points is not None:
             print("│ ← {} ({})".format(row_points[1], row_points[0]))
@@ -287,7 +304,7 @@ def display_board_with_bonuses(board, points):
             print("{}↑ {} ({})".format(space_amount * " ", row_points[1], row_points[0]))
     # dragons are gone.
 
-def location_to_index(loc):
+def location_to_index(loc) -> int:
     """Converts the column-row notation string `loc` given by the user when playing into a list
     index used for the board.
 
@@ -303,13 +320,13 @@ def location_to_index(loc):
     # Simple return statement, calculating the index. The row number is simply multiplied by 4
     # (and 4 is subtracted because of zero-indexing), and is added to the column number. The
     # column number is found using a const dict `COLUMN_FACTORS`.
-    # Note: this small snippet causes lots of error for many reasons of invalid input. Must be
+    # NOTE: this small snippet causes lots of error for many reasons of invalid input. Must be
     # handled outside the function.
     return COLUMN_FACTORS[loc[0]] + (int(loc[1]) * 4 - 4)
 
-# Here's the main game logic, inside of a while True loop, since I don't intend to use the
-# functionality elsewhere.
-while True:
+# Here's the main game logic!
+def main():
+    "Call to run the game once!"
     board = [EMPTY_TILE] * 16  # Fill the board with empty tiles.
 
     seed_choice = input("Enter the custom seed for this game, leave blank for none >>> ")
@@ -323,10 +340,9 @@ while True:
         seed = encode_seed(played_cards)
         print("Seed for this game: {}\n\n".format(seed))
     else:
-        
         if detect_faulty_seed(seed_choice):
             print(detect_faulty_seed(seed_choice))
-            continue
+            return
         current_card_pool = decode_seed(seed_choice)
         played_cards = list(current_card_pool)
 
@@ -334,41 +350,42 @@ while True:
     while current_card_pool:  # While there are still cards in the pool.
         if turns_taken == 16:
             print("Game has lasted too long, forcing end.")
-            break
+            return
         # Pop the top card. As the list is shuffled this is random anyway.
         chosen_number = current_card_pool.pop()
         display_board(board)
         got_target = False  # bool denoting if a position for the number has been chosen.
         while not got_target:
             try:
-                target = location_to_index(input(f"\n\nChoose a location for {chosen_number} >>> ").upper())
+                target = location_to_index(
+                    input(f"\n\nChoose a location for {chosen_number} >>> ").upper())
             # All the errors that can arise from location_to_index() when the input is invalid.
             except (IndexError, KeyError, ValueError):
                 print("Invalid position, try again")
             else:
-                if board[target] == EMPTY_TILE:
-                    got_target = True  # Found a valid position, end while loop.
-                else:  # If the chosen position isn't empty
+                # If a valid position, end while loop.
+                got_target = board[target] == EMPTY_TILE
+                if not got_target:  # If the chosen position isn't empty
                     print("Position filled, try again")
         board[target] = chosen_number  # Update the board with the number
         turns_taken += 1
         print("\n" * 20)  # Print some whitespace for better formatting.
 
-    row_indices = [[0,  1,  2,  3],  #  0  1  2  3
-                   [4,  5,  6,  7],  #  4  5  6  7
-                   [8,  9,  10, 11], #  8  9 10 11
+    row_indices = [[0, 1, 2, 3],     #  0  1  2  3
+                   [4, 5, 6, 7],     #  4  5  6  7
+                   [8, 9, 10, 11],   #  8  9 10 11
                    [12, 13, 14, 15], # 12 13 14 15
-                   [0,  4,  8,  12],
-                   [1,  5,  9,  13], # This list has all the rows and columns
-                   [2,  6,  10, 14], # that the system should check for patterns.
-                   [3,  7,  11, 15],
-                   ]
+                   [0, 4, 8, 12],
+                   [1, 5, 9, 13],    # This list has all the rows and columns
+                   [2, 6, 10, 14],   # that the system should check for patterns.
+                   [3, 7, 11, 15],
+                  ]
 
     # This part of the code turns all rows and columns into lists, for dealing with later.
     total_rows = []
-    for r in row_indices:
+    for row in row_indices:
         current_row = []
-        for i in r:
+        for i in row:
             current_row.append(int(board[i]))
         total_rows.append(current_row)
 
@@ -377,15 +394,20 @@ while True:
     for i in total_rows:
         results.append(max_points_of_row(i))
 
-    # Removes all the rows that gave no points
-    results_clean = [x[0] for x in results if x is not None]
-
     # Nice messages for the user
     print("\n\n\nG A M E   O V E R !\n\n")
     display_board_with_bonuses(board, results)
-    print(f"\n\nYou earned {sum(results_clean)} points!")
-    print("Cards given in this round: {}".format(", ".join([str(x) for x in reversed(played_cards)])))
+    # Removes all the rows that gave no points
+    results = [x[0] for x in results if x is not None]
+    print(f"\n\nYou earned {sum(results)} points!")
+    print("Cards given in this round: {}".format(
+        ", ".join([str(x) for x in reversed(played_cards)])))
     input("Enter to continue...")
+
+# Play the game forever...
+while True:
+    main()
+
 ####################################################################################################
 ######### The following code is still a work in progress, and doesn't even work. Don't try #########
 ##                                                                                                ##
@@ -415,3 +437,4 @@ while True:
 ##                                                                                                ##
 ####################################################################################################
 ####################################################################################################
+
